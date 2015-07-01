@@ -113,7 +113,8 @@ function($timeout, $filter, CURRENCY_SYMBOL) {
             // getItemPrice
             $scope.getItemPrice = function(item) {
                 var unitPrice = item.unit_price;
-                if (Number.isNaN(parseInt(unitPrice))) {  // is a number?
+                // safari does not support Number.isNaN :(
+                if (NaN === parseInt(unitPrice)) {  
                     return 'n/a';
                 }
                 if (item.unit_price <= 0) {
