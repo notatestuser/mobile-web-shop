@@ -34,7 +34,8 @@
                         ng-repeat="item in catalogueItems track by item.uuid"
                         ng-model="item._quantity">
 
-                    <div class="item-image" ng-style="getItemImageStyle(item)">
+                    <div class="item-image"
+                            ng-style="::getItemImageStyle(item)">
                     </div>
                     <div class="item-name"
                             ng-bind="::item.name">
