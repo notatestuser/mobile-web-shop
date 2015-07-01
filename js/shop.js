@@ -90,7 +90,7 @@ function($log, $scope, CatalogueService) {
 
 .directive('purchasableItem', [
     '$timeout',
-function($timeout, $filter, CURRENCY_SYMBOL) {
+function($timeout) {
     // the swipe class is removed when this elapses
     var SWIPE_ANIMATION_DURATION_MS = 800;  // .8s
     return {
@@ -114,13 +114,13 @@ function($timeout, $filter, CURRENCY_SYMBOL) {
             $scope.getItemPrice = function(item) {
                 var unitPrice = item.unit_price;
                 // safari does not support Number.isNaN :(
-                if (NaN === parseInt(unitPrice)) {  
+                if (NaN === parseInt(unitPrice)) {
                     return 'n/a';
                 }
                 if (item.unit_price <= 0) {
                     return 'FREE';
                 }
-                var displayPrice = $filter('currency')(unitPrice, currencySymbol, 0);
+                var displayPrice = $filter('currency')(unitPrice, currencySymbol, CURRENCY_FRACTION_SIZE);
                 return displayPrice;
             };
         }],
