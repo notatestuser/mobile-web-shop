@@ -1,0 +1,249 @@
+/* shop.css             */
+/* author: Luke Plaster */
+
+/* --- */
+
+/* it's awful that entire sets of keyframes have to be duplicated
+   several times to cater for vendor prefixing, but without using a
+   preprocessor there's really no other way... */
+
+@-webkit-keyframes swipe-left {
+    0% { transform: translateX(0); -webkit-transform: translateX(0); }
+    60% { transform: translateX(-5rem); -webkit-transform: translateX(-5rem); }
+    100% { transform: translateX(0); -webkit-transform: translateX(0); }
+}
+
+@-webkit-keyframes swipe-right {
+    0% { transform: translateX(0); -webkit-transform: translateX(0); }
+    60% { transform: translateX(5rem); -webkit-transform: translateX(5rem); }
+    100% { transform: translateX(0); -webkit-transform: translateX(0); }
+}
+
+@-webkit-keyframes swipe-left-inverse {
+    0% { transform: translateX(0); -webkit-transform: translateX(0); }
+    60% { transform: translateX(5rem); -webkit-transform: translateX(5rem); }
+    100% { transform: translateX(0); -webkit-transform: translateX(0); }
+}
+
+@-webkit-keyframes swipe-right-inverse {
+    0% { transform: translateX(0); -webkit-transform: translateX(0); }
+    60% { transform: translateX(-5rem); -webkit-transform: translateX(-5rem); }
+    100% { transform: translateX(0); -webkit-transform: translateX(0); }
+}
+
+@-webkit-keyframes fade-quantity-in-out {
+    0% { opacity: 0; }
+    5%  { opacity: .9; }
+    30% { opacity:  1; }
+    90% { opacity:  1; }
+    100% { opacity: 0; }
+}
+
+/* --- */
+
+@keyframes swipe-left {
+    0% { left: 0; }
+    60% { left: -5rem }
+    100% { left: 0; }
+}
+
+@keyframes swipe-right {
+    0% { left: 0; }
+    60% { left: 5rem }
+    100% { left: 0; }
+}
+
+@keyframes swipe-left-inverse {
+    0% { right: 0; }
+    60% { right: -5rem }
+    100% { right: 0; }
+}
+
+@keyframes swipe-right-inverse {
+    0% { left: 0; }
+    60% { left: -5rem }
+    100% { left: 0; }
+}
+
+@keyframes fade-quantity-in-out {
+    0% { opacity: 0; }
+    5%  { opacity: .9; }
+    30% { opacity:  1; }
+    90% { opacity:  1; }
+    100% { opacity: 0; }
+}
+
+/* --- */
+
+html {
+    font-size: 3vw;
+}
+
+body, input, button {
+    -webkit-font-smoothing:  antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: hsl(0, 0%, 97%);
+    transition: padding 0.3s ease;
+    -moz-transition: padding 0.3s ease;
+    -webkit-transition: padding 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Helvetica Neue', 'Helvetica', Arial;
+    font-weight: 200;
+}
+
+a,
+a:hover,
+a:active,
+a:visited {
+   text-decoration: none;
+}
+
+button {
+   text-align: center;
+}
+
+/* --- */
+
+header {
+    background-color: hsl(200, 53%, 79%);
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    padding: 1.5rem 2rem;
+}
+
+.items {
+    margin: 0; padding: 0;
+    list-style-type: none;
+}
+
+.items {
+    font-size: 1.5rem;
+    font-weight: 200;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.items .item {
+    position: relative;
+    padding: 0;
+    height: 5.1rem;
+    width: 100vw;
+    white-space: nowrap;
+    display: block;
+    padding: 1.6rem 2rem 1.6rem 7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    box-sizing: border-box;
+    border-bottom: 1px
+    
+    solid
+    
+    hsl(0, 0%, 90%);
+}
+
+.items .item.swiping-left {
+    -webkit-animation: swipe-left .3s ease-out;
+    animation: swipe-left .3s ease-out;
+}
+.items .item.swiping-right {
+    -webkit-animation: swipe-right .3s ease-out;
+    animation: swipe-right .3s ease-out;
+}
+
+.items .item-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 5rem;
+    height: 5rem;
+    background: hsl(0, 0%, 97%) url(http://lorempixel.com/64/64/) no-repeat scroll;
+    background-size: contain;
+    z-index: 10;
+}
+.items .item-name {
+    float: left;
+    letter-spacing: 0px;
+    font-weight: 300;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 70%;
+}
+.items .item-price {
+    color: #777;
+    float: right;
+    text-align: left;
+    width: 6rem;
+}
+.items .item-quantity {
+    position: absolute;
+    right: 1rem;
+    color: white;
+    padding: 0 .3em;
+    background: green;
+    border-radius: 100%;
+}
+
+/* the :before and :after pseudo-elements flash the new quantities on add/remove */
+
+.items .item:before,
+.items .item:after {
+    content: attr(data-quantity);
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 5rem;
+    height: 5rem;
+    color: white;
+    text-align: center;
+    font-size: 3rem;
+    padding: .8rem 0;
+    box-sizing: border-box;
+    opacity: 0;
+    z-index: 20;
+}
+.items .item:before {
+    left: 0;
+    background: green;
+}
+.items .item:after {
+    right: 0;
+    background: red;
+}
+
+.items .item.swiping-left:after {
+    -webkit-animation: fade-quantity-in-out .8s ease-out,
+               swipe-left-inverse .3s ease-out;
+    animation: fade-quantity-in-out .8s ease-out,
+               swipe-left-inverse .3s ease-out;
+}
+
+.items .item.swiping-right:before {
+    -webkit-animation: fade-quantity-in-out .8s ease-out,
+               swipe-right-inverse .3s ease-out;
+    animation: fade-quantity-in-out .8s ease-out,
+               swipe-right-inverse .3s ease-out;
+}
+
+/* --- */
+
+/* media queries */
+
+@media (min-width: 550px) {
+    html {
+        font-size: 16.5px;
+    }
+}
+
+@media (max-width: 767px) {
+    .items .item {
+        cursor: move;
+    }
+}

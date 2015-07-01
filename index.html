@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>A Responsive Shop</title>
+        <meta charset="utf-8">
+        <meta name="application-name" content="A Test Shop">
+        <meta name="author" content="Luke Plaster <me@lukep.org>">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <link rel="stylesheet" type="text/css" href="css/normalize.css">
+        <link rel="stylesheet" type="text/css" href="css/shop.css">
+        <script src="js/angular.min.js"></script> <!-- no defer for immediate ng-cloak -->
+        <script src="js/hammer.min.js" defer></script>
+        <script src="js/shop.js" defer></script>
+    </head>
+    <body ng-controller="StorefrontCtrl"
+            ng-cloak>
+        <header>
+            <h1>A Responsive Shop</h1>
+        </header>
+        <main on-infinite-scroll="loadMoreItems()">
+            <ul class="items">
+                <li class="item loading"
+                        ng-if="isLoading">
+                    <div class="item-name">
+                        Loading, please wait&hellip;
+                    </div>
+                </li>
+
+                <li class="item purchasable-item"
+                        ng-repeat="item in catalogueItems track by item.uuid"
+                        ng-model="item._quantity">
+
+                    <div class="item-image" ng-style="getItemImageStyle(item)">
+                    </div>
+                    <div class="item-name"
+                            ng-bind="::item.name">
+                    </div>
+                    <div class="item-price"
+                            ng-bind="::getItemPrice(item)">
+                    </div>
+                    <div class="item-quantity"
+                            ng-bind="item._quantity | number"
+                            ng-hide="item._quantity <= 0">
+                    </div>
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>
