@@ -1,3 +1,4 @@
+// from https://gist.github.com/heygrady/1516965
 (function(window, document, undefined){
 "use strict";
 
