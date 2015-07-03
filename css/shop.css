@@ -59,6 +59,7 @@ header h1 {
 .items {
     font-size: 1.5rem;
     font-weight: 200;
+    overflow-x: hidden;
     -moz-user-select: none;
     -webkit-user-select: none;
 }
