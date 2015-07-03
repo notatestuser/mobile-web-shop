@@ -10,7 +10,7 @@ angular.module('axsy.testshop.main', [])
 .constant('DEFAULT_ITEMS_FETCH_LIMIT', 16)
 .constant('ITEM_DRAG_SPEED_FACTOR', 0.2)
 .constant('ITEM_DRAG_TRAVEL_UNITS', '5rem')
-.constant('ITEM_SNAPBACK_DURATION_MS', 800)  // the duration of the snapback animation (in css)
+.constant('ITEM_SNAPBACK_DURATION_MS', 700)  // the duration of the snapback animation (in css)
 
 .value('toPx', window.Length.toPx)
 .value('requestAnimationFrame',

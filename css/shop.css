@@ -139,12 +139,12 @@ header h1 {
 /* snap-back animations */
 
 .items .item.snapping-back {
-    transition: -webkit-transform .6s ease-out .2s;
-    transition: -moz-transform .6s ease-out .2s;
-    transition: transform .6s ease-out .2s;
+    transition: -webkit-transform .6s ease-out .1s;
+    transition: -moz-transform .6s ease-out .1s;
+    transition: transform .6s ease-out .1s;
 }
 .items .item.snapping-back .purchasable-item-new-quantity-indicator {
-    transition: opacity .6s ease-out .2s;
+    transition: opacity .6s ease-out .1s;
 }
 
 /* --- */
