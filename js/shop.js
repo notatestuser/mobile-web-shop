@@ -104,7 +104,6 @@ function($log, $scope, CatalogueService) {
     'ITEM_DRAG_SPEED_FACTOR',
     'ITEM_SNAPBACK_DURATION_MS',
 function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SPEED_FACTOR, ITEM_SNAPBACK_DURATION_MS) {
-    // the swipe class is removed when this elapses
     return {
         require: 'ngModel',
         restrict: 'AC',
