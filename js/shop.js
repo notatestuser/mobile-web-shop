@@ -219,7 +219,7 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                 var quantityIncrement = travelDirection === 'right' ? 1 : -1;
                 swipeMutex = true;  // lock further drags until reset
                 panning = false;
-                if (curX === position.minX || curX === position.maxX) {  // hit right or left bound?
+                if (curX <= position.minX || curX >= position.maxX) {  // hit right or left bound?
                     adjustItemQuantity(quantityIncrement);
                 }
                 position.curX = 0;
