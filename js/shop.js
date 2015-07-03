@@ -8,6 +8,13 @@ angular.module('axsy.testshop.main', [])
 .constant('CURRENCY_SYMBOL', '£')
 .constant('CURRENCY_FRACTION_SIZE', 0)
 .constant('DEFAULT_ITEMS_FETCH_LIMIT', 16)
+.constant('ITEM_DRAG_SPEED_FACTOR', 0.2)
+.constant('ITEM_DRAG_TRAVEL_UNITS', '5rem')
+.constant('ITEM_SNAPBACK_DURATION_MS', 800)  // the duration of the snapback animation (in css)
+
+.value('toPx', window.Length.toPx)
+.value('requestAnimationFrame',
+            window[Hammer.prefixed(window, 'requestAnimationFrame')])
 
 // --- services ---
 
@@ -90,12 +97,21 @@ function($log, $scope, CatalogueService) {
 
 .directive('purchasableItem', [
     '$timeout',
-function($timeout) {
+    'toPx',
+    'requestAnimationFrame',
+    'ITEM_DRAG_TRAVEL_UNITS',
+    'ITEM_DRAG_SPEED_FACTOR',
+    'ITEM_SNAPBACK_DURATION_MS',
+function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SPEED_FACTOR, ITEM_SNAPBACK_DURATION_MS) {
     // the swipe class is removed when this elapses
-    var SWIPE_ANIMATION_DURATION_MS = 800;  // .8s
     return {
         require: 'ngModel',
         restrict: 'AC',
+        transclude: true,
+        template: '' +
+            '<div class="purchasable-item-new-quantity-indicator left"></div>' +
+            '<div ng-transclude></div>' +
+            '<div class="purchasable-item-new-quantity-indicator right"></div>',
         controller: [
             '$scope',
             '$filter',
@@ -114,21 +130,29 @@ function($timeout) {
             $scope.getItemPrice = function(item) {
                 var unitPrice = item.unit_price;
                 // safari does not support Number.isNaN :(
-                if (NaN === parseInt(unitPrice)) {
+                var isNaN = Number.isNaN || function(value) {
+                    return typeof value === 'number' && value !== value;
+                };
+                if (isNaN(parseInt(unitPrice))) {
                     return 'n/a';
                 }
                 if (item.unit_price <= 0) {
                     return 'FREE';
                 }
-                var displayPrice = $filter('currency')(unitPrice, currencySymbol, CURRENCY_FRACTION_SIZE);
+                var displayPrice =
+                        $filter('currency')(unitPrice, currencySymbol, CURRENCY_FRACTION_SIZE);
                 return displayPrice;
             };
         }],
         link: function(scope, elem, attrs, ngModel) {
+            var _toPx = toPx.bind(this, elem);
+            function getAdjustedQuantity(increment) {
+                var adjustedQuantity = scope.getItemQuantity() + increment;
+                return Math.max(0, adjustedQuantity);  // >= 0
+            }
             // adjustItemQuantity: swiping changes the quantity via this function
             function adjustItemQuantity(increment) {
-                var adjustedQuantity = scope.getItemQuantity() + increment;
-                adjustedQuantity = Math.max(0, adjustedQuantity);  // >= 0
+                var adjustedQuantity = getAdjustedQuantity(increment);
                 elem.attr('data-quantity', adjustedQuantity);
                 ngModel.$setViewValue(adjustedQuantity);
             }
@@ -136,41 +160,124 @@ function($timeout) {
             scope.getItemQuantity = function() {
                 return ngModel.$modelValue || 0;
             };
-            // listen for the swipe event (via hammer)
+            // init quantity
+            adjustItemQuantity(0);
+            // --- //
+            var maxX;
+            var position = {
+                maxX: maxX =  _toPx(ITEM_DRAG_TRAVEL_UNITS),
+                minX: -maxX,
+                curX: 0
+            };
+            var ticking = false;
+            function updateElementPosition() {
+                var translateX = 'translateX(' + position.curX + 'px)';
+                elem[0].style.webkitTransform = translateX;
+                elem[0].style.mozTransform = translateX;
+                elem[0].style.transform = translateX;
+                ticking = false;
+            }
+            function requestElementUpdate() {
+                if ( ! ticking) {
+                    reqAnimationFrame(updateElementPosition);
+                    ticking = true;
+                }
+            }
             var mc = new Hammer.Manager(elem[0], {
                 recognizers: [
-                    // Hammer.Swipe ref: http://hammerjs.github.io/recognizer-swipe
-                    [Hammer.Swipe, {
+                    // Hammer.Pan ref: http://hammerjs.github.io/recognizer-pan
+                    [Hammer.Pan, {
                         direction: Hammer.DIRECTION_HORIZONTAL,
-                        threshold: 3
-                    }],
+                        threshold: 0,
+                        pointers: 0
+                    }]
                 ]
             });
             var swipeMutex = false;  // one swipe at a time
-            mc.on('swipe', function(ev) {
-                if (swipeMutex) {
-                    return;
-                }
-                swipeMutex = true;
-                switch (ev.direction) {
-                    case Hammer.DIRECTION_LEFT:
-                        adjustItemQuantity(-1);
-                        elem.addClass('swiping swiping-left');
-                        break;
-                    case Hammer.DIRECTION_RIGHT:
-                        adjustItemQuantity(1);
-                        elem.addClass('swiping swiping-right');
-                        break;
-                }
-                $timeout(function(){
-                    elem.removeClass('swiping swiping-left swiping-right');
-                }, SWIPE_ANIMATION_DURATION_MS)
-                .then(function(){
-                    swipeMutex = false;
+            function onPanMove(ev) {
+                if (swipeMutex) return;
+                var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
+                var curX = position.curX =
+                        Math.min(Math.max(newX, position.minX), position.maxX);
+                var travelCompletion = (Math.abs(curX) / position.maxX * 100) / 100;  // either direction
+                var travelDirection  = curX < 0 ? 'left' : 'right';
+                scope.$broadcast('drag-position-changed', {
+                    travelX: curX,
+                    travelCompletion: travelCompletion,
+                    travelDirection: travelDirection,
+                    displayQuantity:
+                            travelDirection === 'right' ? getAdjustedQuantity(1) : getAdjustedQuantity(-1)
                 });
+                requestElementUpdate();
+            }
+            function onPanEnd() {
+                if (swipeMutex) return;
+                var curX = position.curX;
+                var travelDirection  = curX < 0 ? 'left' : 'right';
+                var quantityIncrement = travelDirection === 'right' ? 1 : -1;
+                swipeMutex = true;  // lock further drags until reset
+                if (curX === position.minX || curX === position.maxX) {  // hit right or left bound?
+                    adjustItemQuantity(quantityIncrement);
+                }
+                position.curX = 0;
+                elem.addClass('snapping-back');
+                scope.$broadcast('drag-position-reset');
+                requestElementUpdate();
+                $timeout(function() {
+                    elem.removeClass('snapping-back');
+                    swipeMutex = false;
+                }, ITEM_SNAPBACK_DURATION_MS);
+            }
+            mc.on('panstart panmove', onPanMove);
+            mc.on('panend', onPanEnd);
+        }
+    };
+}])
+
+.directive('purchasableItemNewQuantityIndicator', [
+    'requestAnimationFrame',
+function(reqAnimationFrame) {
+    return {
+        restrict: 'C',
+        scope: true,
+        template: '<span ng-bind="quantity"></span>',
+        link: function(scope, elem) {
+            var ticking = false;
+            var position = { curX: 0 };
+            var opacity = 0;
+            function updateElementOpacityAndPosition() {
+                var translateX = 'translateX(' + position.curX + 'px)';
+                elem[0].style.opacity = opacity;
+                elem[0].style.webkitTransform = translateX;
+                elem[0].style.mozTransform = translateX;
+                elem[0].style.transform = translateX;
+                ticking = false;
+            }
+            function requestElementUpdate() {
+                if ( ! ticking) {
+                    reqAnimationFrame(updateElementOpacityAndPosition);
+                    ticking = true;
+                }
+            }
+            scope.$on('drag-position-reset', function() {
+                opacity = 0;
+                requestElementUpdate();
             });
-            // init
-            adjustItemQuantity(0);
+            scope.$on('drag-position-changed', function(__ev, descriptor) {
+                if ( ! elem.hasClass(descriptor.travelDirection)) {
+                    // inverse x pos because of the way absolute positioning works (and fixed looks crap)
+                    position.curX = -descriptor.travelX;
+                    opacity = descriptor.travelCompletion;
+                    scope.$apply(function(){
+                        scope.quantity = descriptor.displayQuantity;
+                    });
+                } else {
+                    // not us. opacity 0, pos 0.
+                    opacity = 0;
+                    position.curX = 0;
+                }
+                requestElementUpdate();
+            });
         }
     };
 }])
@@ -208,15 +315,7 @@ function($document, $window) {
             });
         }
     };
-}])
-
-// --- filters ---
-
-.filter('toFixed', function() {
-    return function(num, precision) {
-        return (num || 0).toFixed(precision || 2);
-    };
-});
+}]);
 
 // --- int main() ---
 

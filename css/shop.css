@@ -3,77 +3,9 @@
 
 /* --- */
 
-/* it's awful that entire sets of keyframes have to be duplicated
-   several times to cater for vendor prefixing, but without using a
-   preprocessor there's really no other way... */
-
-@-webkit-keyframes swipe-left {
-    0% { transform: translateX(0); -webkit-transform: translateX(0); }
-    60% { transform: translateX(-5rem); -webkit-transform: translateX(-5rem); }
-    100% { transform: translateX(0); -webkit-transform: translateX(0); }
+html, body {
+    overflow-x: hidden;
 }
-
-@-webkit-keyframes swipe-right {
-    0% { transform: translateX(0); -webkit-transform: translateX(0); }
-    60% { transform: translateX(5rem); -webkit-transform: translateX(5rem); }
-    100% { transform: translateX(0); -webkit-transform: translateX(0); }
-}
-
-@-webkit-keyframes swipe-left-inverse {
-    0% { transform: translateX(0); -webkit-transform: translateX(0); }
-    60% { transform: translateX(5rem); -webkit-transform: translateX(5rem); }
-    100% { transform: translateX(0); -webkit-transform: translateX(0); }
-}
-
-@-webkit-keyframes swipe-right-inverse {
-    0% { transform: translateX(0); -webkit-transform: translateX(0); }
-    60% { transform: translateX(-5rem); -webkit-transform: translateX(-5rem); }
-    100% { transform: translateX(0); -webkit-transform: translateX(0); }
-}
-
-@-webkit-keyframes fade-quantity-in-out {
-    0% { opacity: 0; }
-    5%  { opacity: .9; }
-    30% { opacity:  1; }
-    90% { opacity:  1; }
-    100% { opacity: 0; }
-}
-
-/* --- */
-
-@keyframes swipe-left {
-    0% { left: 0; }
-    60% { left: -5rem }
-    100% { left: 0; }
-}
-
-@keyframes swipe-right {
-    0% { left: 0; }
-    60% { left: 5rem }
-    100% { left: 0; }
-}
-
-@keyframes swipe-left-inverse {
-    0% { right: 0; }
-    60% { right: -5rem }
-    100% { right: 0; }
-}
-
-@keyframes swipe-right-inverse {
-    0% { left: 0; }
-    60% { left: -5rem }
-    100% { left: 0; }
-}
-
-@keyframes fade-quantity-in-out {
-    0% { opacity: 0; }
-    5%  { opacity: .9; }
-    30% { opacity:  1; }
-    90% { opacity:  1; }
-    100% { opacity: 0; }
-}
-
-/* --- */
 
 html {
     font-size: 3vw;
@@ -142,21 +74,8 @@ header h1 {
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
+    border-bottom: 1px solid hsl(0, 0%, 90%);
     box-sizing: border-box;
-    border-bottom: 1px
-    
-    solid
-    
-    hsl(0, 0%, 90%);
-}
-
-.items .item.swiping-left {
-    -webkit-animation: swipe-left .3s ease-out;
-    animation: swipe-left .3s ease-out;
-}
-.items .item.swiping-right {
-    -webkit-animation: swipe-right .3s ease-out;
-    animation: swipe-right .3s ease-out;
 }
 
 .items .item-image {
@@ -164,7 +83,7 @@ header h1 {
     top: 0; left: 0;
     width: 5rem;
     height: 5rem;
-    background: hsl(0, 0%, 97%) url(http://lorempixel.com/64/64/) no-repeat scroll;
+    background: hsl(0, 0%, 97%) no-repeat scroll;
     background-size: contain;
     z-index: 10;
 }
@@ -191,10 +110,9 @@ header h1 {
     border-radius: 100%;
 }
 
-/* the :before and :after pseudo-elements flash the new quantities on add/remove */
+/* these elements flash the new quantities on add/remove */
 
-.items .item:before,
-.items .item:after {
+.items .purchasable-item-new-quantity-indicator {
     content: attr(data-quantity);
     display: block;
     position: absolute;
@@ -209,27 +127,24 @@ header h1 {
     opacity: 0;
     z-index: 20;
 }
-.items .item:before {
+.items .purchasable-item-new-quantity-indicator.left {
     left: 0;
     background: green;
 }
-.items .item:after {
+.items .purchasable-item-new-quantity-indicator.right {
     right: 0;
     background: red;
 }
 
-.items .item.swiping-left:after {
-    -webkit-animation: fade-quantity-in-out .8s ease-out,
-               swipe-left-inverse .3s ease-out;
-    animation: fade-quantity-in-out .8s ease-out,
-               swipe-left-inverse .3s ease-out;
-}
+/* snap-back animations */
 
-.items .item.swiping-right:before {
-    -webkit-animation: fade-quantity-in-out .8s ease-out,
-               swipe-right-inverse .3s ease-out;
-    animation: fade-quantity-in-out .8s ease-out,
-               swipe-right-inverse .3s ease-out;
+.items .item.snapping-back {
+    transition: -webkit-transform .6s ease-out .2s;
+    transition: -moz-transform .6s ease-out .2s;
+    transition: transform .6s ease-out .2s;
+}
+.items .item.snapping-back .purchasable-item-new-quantity-indicator {
+    transition: opacity .6s ease-out .2s;
 }
 
 /* --- */
