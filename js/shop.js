@@ -196,7 +196,7 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
             var swipeMutex = false;  // one swipe at a time
             var panning = false;
             function onPanMove(ev) {
-                if (swipeMutex || ev.deltaY > 20) return;
+                if (swipeMutex || ev.deltaY > 10) return;  // ignore Y pans
                 var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
                 var curX = position.curX =
                         Math.min(Math.max(newX, position.minX), position.maxX);
@@ -219,7 +219,8 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                 var quantityIncrement = travelDirection === 'right' ? 1 : -1;
                 swipeMutex = true;  // lock further drags until reset
                 panning = false;
-                if (curX <= position.minX || curX >= position.maxX) {  // hit right or left bound?
+                // hit right or left bound?
+                if (curX <= position.minX + 10 || curX >= position.maxX - 10) {
                     adjustItemQuantity(quantityIncrement);
                 }
                 position.curX = 0;
