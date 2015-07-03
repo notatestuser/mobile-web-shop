@@ -188,7 +188,7 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                     // Hammer.Pan ref: http://hammerjs.github.io/recognizer-pan
                     [Hammer.Pan, {
                         direction: Hammer.DIRECTION_HORIZONTAL,
-                        threshold: 3,
+                        threshold: 6,
                         pointers: 0
                     }]
                 ]
