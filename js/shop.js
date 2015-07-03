@@ -273,13 +273,17 @@ function(reqAnimationFrame) {
                 requestElementUpdate();
             });
             scope.$on('drag-position-changed', function(__ev, descriptor) {
+                var lastQuantity;
                 if ( ! elem.hasClass(descriptor.travelDirection)) {
                     // inverse x pos because of the way absolute positioning works (and fixed looks crap)
                     position.curX = -descriptor.travelX;
                     opacity = descriptor.travelCompletion;
-                    scope.$apply(function(){
-                        scope.quantity = descriptor.displayQuantity;
-                    });
+                    lastQuantity = scope.quantity;
+                    scope.quantity = descriptor.displayQuantity;
+                    if (lastQuantity !== scope.quantity) {
+                        // don't do this on every tick
+                        scope.$apply();
+                    }
                 } else {
                     // not us. opacity 0, pos 0.
                     opacity = 0;
