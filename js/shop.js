@@ -196,7 +196,7 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
             var swipeMutex = false;  // one swipe at a time
             var panning = false;
             function onPanMove(ev) {
-                if (swipeMutex || ev.deltaY > 10) return;  // ignore Y pans
+                if (swipeMutex || ev.deltaY > 3) return;  // ignore Y pans
                 var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
                 var curX = position.curX =
                         Math.min(Math.max(newX, position.minX), position.maxX);
