@@ -1,9 +1,9 @@
 /* shop.css             */
 /* author: Luke Plaster */
 
-/* --- */
-
 html, body {
+    /* disable horizontal scroll */
+    max-width: 100%;
     overflow-x: hidden;
 }
 
