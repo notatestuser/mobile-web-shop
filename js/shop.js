@@ -188,19 +188,21 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                     // Hammer.Pan ref: http://hammerjs.github.io/recognizer-pan
                     [Hammer.Pan, {
                         direction: Hammer.DIRECTION_HORIZONTAL,
-                        threshold: 6,
+                        threshold: 5,
                         pointers: 0
                     }]
                 ]
             });
             var swipeMutex = false;  // one swipe at a time
+            var panning = false;
             function onPanMove(ev) {
-                if (swipeMutex) return;
+                if (swipeMutex || ev.deltaY > 20) return;
                 var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
                 var curX = position.curX =
                         Math.min(Math.max(newX, position.minX), position.maxX);
                 var travelCompletion = (Math.abs(curX) / position.maxX * 100) / 100;  // either direction
                 var travelDirection  = curX < 0 ? 'left' : 'right';
+                panning = true;
                 scope.$broadcast('drag-position-changed', {
                     travelX: curX,
                     travelCompletion: travelCompletion,
@@ -211,18 +213,24 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                 requestElementUpdate();
             }
             function onPanEnd() {
-                if (swipeMutex) return;
+                if (swipeMutex || ! panning) return;
                 var curX = position.curX;
                 var travelDirection  = curX < 0 ? 'left' : 'right';
                 var quantityIncrement = travelDirection === 'right' ? 1 : -1;
                 swipeMutex = true;  // lock further drags until reset
+                panning = false;
                 if (curX === position.minX || curX === position.maxX) {  // hit right or left bound?
                     adjustItemQuantity(quantityIncrement);
                 }
                 position.curX = 0;
-                elem.addClass('snapping-back');
                 scope.$broadcast('drag-position-reset');
                 requestElementUpdate();
+                if (Math.abs(curX) < 20) {
+                    // don't bother with animated snapback
+                    swipeMutex = false;
+                    return;
+                }
+                elem.addClass('snapping-back');
                 $timeout(function() {
                     elem.removeClass('snapping-back');
                     swipeMutex = false;
