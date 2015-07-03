@@ -11,6 +11,7 @@ angular.module('axsy.testshop.main', [])
 .constant('ITEM_DRAG_SPEED_FACTOR', 0.2)
 .constant('ITEM_DRAG_TRAVEL_UNITS', '5rem')
 .constant('ITEM_SNAPBACK_DURATION_MS', 700)  // the duration of the snapback animation (in css)
+.constant('INFINITE_SCROLL_ZONE_BOTTOM_OFFSET', 300)
 
 .value('toPx', window.Length.toPx)
 .value('requestAnimationFrame',
@@ -285,8 +286,8 @@ function(reqAnimationFrame) {
 .directive('onInfiniteScroll', [
     '$document',
     '$window',
-function($document, $window) {
-    var INFINITE_SCROLL_ZONE_BOTTOM_OFFSET = 100;
+    'INFINITE_SCROLL_ZONE_BOTTOM_OFFSET',
+function($document, $window, INFINITE_SCROLL_ZONE_BOTTOM_OFFSET) {
     function getDocumentHeight() {
         // from http://stackoverflow.com/a/1147768
         var body = $document[0].body,
