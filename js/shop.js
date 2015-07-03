@@ -16,6 +16,7 @@ angular.module('axsy.testshop.main', [])
 .value('toPx', window.Length.toPx)
 .value('requestAnimationFrame',
             window[Hammer.prefixed(window, 'requestAnimationFrame')])
+.value('itemDragConstants', {})  // primed in module run()
 
 // --- services ---
 
@@ -97,13 +98,14 @@ function($log, $scope, CatalogueService) {
 // --- directives ---
 
 .directive('purchasableItem', [
+    '$window',
     '$timeout',
-    'toPx',
+    'itemDragConstants',
     'requestAnimationFrame',
     'ITEM_DRAG_TRAVEL_UNITS',
     'ITEM_DRAG_SPEED_FACTOR',
     'ITEM_SNAPBACK_DURATION_MS',
-function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SPEED_FACTOR, ITEM_SNAPBACK_DURATION_MS) {
+function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SPEED_FACTOR, ITEM_SNAPBACK_DURATION_MS) {
     return {
         require: 'ngModel',
         restrict: 'AC',
@@ -145,7 +147,6 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
             };
         }],
         link: function(scope, elem, attrs, ngModel) {
-            var _toPx = toPx.bind(this, elem);
             function getAdjustedQuantity(increment) {
                 var adjustedQuantity = scope.getItemQuantity() + increment;
                 return Math.max(0, adjustedQuantity);  // >= 0
@@ -163,13 +164,6 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
             // init quantity
             adjustItemQuantity(0);
             // --- //
-            var maxX;
-            var position = {
-                maxX: maxX =  _toPx(ITEM_DRAG_TRAVEL_UNITS),
-                minX: -maxX,
-                curX: 0
-            };
-            var ticking = false;
             function updateElementPosition() {
                 var translateX = 'translateX(' + position.curX + 'px)';
                 elem[0].style.webkitTransform = translateX;
@@ -183,24 +177,16 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                     ticking = true;
                 }
             }
-            var mc = new Hammer.Manager(elem[0], {
-                recognizers: [
-                    // Hammer.Pan ref: http://hammerjs.github.io/recognizer-pan
-                    [Hammer.Pan, {
-                        direction: Hammer.DIRECTION_HORIZONTAL,
-                        threshold: 5,
-                        pointers: 0
-                    }]
-                ]
-            });
+            var ticking = false;
+            var position = { curX: 0 };
             var swipeMutex = false;  // one swipe at a time
             var panning = false;
             function onPanMove(ev) {
                 if (swipeMutex || ev.deltaY > 3) return;  // ignore Y pans
                 var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
                 var curX = position.curX =
-                        Math.min(Math.max(newX, position.minX), position.maxX);
-                var travelCompletion = (Math.abs(curX) / position.maxX * 100) / 100;  // either direction
+                        Math.min(Math.max(newX, itemDragConstants.minX), itemDragConstants.maxX);
+                var travelCompletion = (Math.abs(curX) / itemDragConstants.maxX * 100) / 100;  // either direction
                 var travelDirection  = curX < 0 ? 'left' : 'right';
                 panning = true;
                 scope.$broadcast('drag-position-changed', {
@@ -220,7 +206,7 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                 swipeMutex = true;  // lock further drags until reset
                 panning = false;
                 // hit right or left bound?
-                if (curX <= position.minX + 10 || curX >= position.maxX - 10) {
+                if (curX <= itemDragConstants.minX + 10 || curX >= itemDragConstants.maxX - 10) {
                     adjustItemQuantity(quantityIncrement);
                 }
                 position.curX = 0;
@@ -237,6 +223,12 @@ function($timeout, toPx, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SP
                     swipeMutex = false;
                 }, ITEM_SNAPBACK_DURATION_MS);
             }
+            var mc = new Hammer.Manager(elem[0]);
+            mc.add(new Hammer.Pan({
+                direction: Hammer.DIRECTION_HORIZONTAL,
+                threshold: 5,
+                pointers: 0
+            }));
             mc.on('panstart panmove', onPanMove);
             mc.on('panend', onPanEnd);
         }
@@ -296,10 +288,10 @@ function(reqAnimationFrame) {
 }])
 
 .directive('onInfiniteScroll', [
-    '$document',
     '$window',
+    '$document',
     'INFINITE_SCROLL_ZONE_BOTTOM_OFFSET',
-function($document, $window, INFINITE_SCROLL_ZONE_BOTTOM_OFFSET) {
+function($window, $document, INFINITE_SCROLL_ZONE_BOTTOM_OFFSET) {
     function getDocumentHeight() {
         // from http://stackoverflow.com/a/1147768
         var body = $document[0].body,
@@ -328,9 +320,25 @@ function($document, $window, INFINITE_SCROLL_ZONE_BOTTOM_OFFSET) {
             });
         }
     };
-}]);
+}])
 
 // --- int main() ---
+
+.run([
+    '$window',
+    '$document',
+    'toPx',
+    'itemDragConstants',
+    'ITEM_DRAG_TRAVEL_UNITS',
+function($window, $document, toPx, itemDragConstants, ITEM_DRAG_TRAVEL_UNITS) {
+    function updateItemMaxTravelX() {
+        itemDragConstants.maxX = toPx($document[0].body, ITEM_DRAG_TRAVEL_UNITS);
+        itemDragConstants.minX = -itemDragConstants.maxX;
+    }
+    $window.addEventListener('resize', updateItemMaxTravelX);
+    $window.addEventListener('deviceorientation', updateItemMaxTravelX);
+    updateItemMaxTravelX();
+}]);
 
 angular.element(document).ready(function(){
     angular.bootstrap(document, ['axsy.testshop.main']);
