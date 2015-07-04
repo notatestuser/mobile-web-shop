@@ -179,10 +179,25 @@ function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAV
             }
             var ticking = false;
             var position = { curX: 0 };
-            var swipeMutex = false;  // one swipe at a time
             var panning = false;
+            var swipeMutex = false;  // one swipe at a time
+            var swipeStartWindowScrollY;
+            function resetActivePan() {
+                panning = false;
+                position.curX = 0;
+                position.totalDeltaY = 0;
+                scope.$broadcast('drag-position-reset');
+                requestElementUpdate();
+            }
+            function onPanStart(ev) {
+                swipeStartWindowScrollY = $window.scrollY;
+                onPanMove(ev);
+            }
             function onPanMove(ev) {
-                if (swipeMutex || ev.deltaY > 3) return;  // ignore Y pans
+                if (swipeMutex) return;
+                if (swipeStartWindowScrollY !== $window.scrollY) {
+                    return resetActivePan();  // ignore Y pans
+                }
                 var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
                 var curX = position.curX =
                         Math.min(Math.max(newX, itemDragConstants.minX), itemDragConstants.maxX);
@@ -229,7 +244,8 @@ function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAV
                 threshold: 5,
                 pointers: 0
             }));
-            mc.on('panstart panmove', onPanMove);
+            mc.on('panstart', onPanStart);
+            mc.on('panmove', onPanMove);
             mc.on('panend', onPanEnd);
         }
     };
