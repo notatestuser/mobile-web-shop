@@ -9,6 +9,8 @@ var MODULE_NAME = 'lukep.testshop.main';
 
 angular.module(MODULE_NAME, [])
 
+.constant('CATALOGUE_ITEMS_FILE', './data/catalogue_items.json')
+
 .constant('CURRENCY_SYMBOL', '£')
 .constant('CURRENCY_FRACTION_SIZE', 0)
 .constant('DEFAULT_ITEMS_FETCH_LIMIT', 16)
@@ -26,9 +28,9 @@ angular.module(MODULE_NAME, [])
 
 .factory('CatalogueService', [
     '$http',
+    'CATALOGUE_ITEMS_FILE',
     'DEFAULT_ITEMS_FETCH_LIMIT',
-function($http, DEFAULT_ITEMS_FETCH_LIMIT) {
-    var CATALOGUE_URL = './exercise/catalogue_items.json';
+function($http, CATALOGUE_ITEMS_FILE, DEFAULT_ITEMS_FETCH_LIMIT) {
     return {
         fetchCatalogueItems: function(offset, limit) {
             if ( ! offset) {
@@ -38,7 +40,7 @@ function($http, DEFAULT_ITEMS_FETCH_LIMIT) {
                 limit = DEFAULT_ITEMS_FETCH_LIMIT;
             }
             return $http
-                .get(CATALOGUE_URL, { cache: true })
+                .get(CATALOGUE_ITEMS_FILE, { cache: true })
                 .then(function(resp) {
                     return resp.data
                     .slice(offset, offset + limit)
@@ -363,5 +365,6 @@ function($window, $document, toPx, itemDragConstants, ITEM_DRAG_TRAVEL_UNITS) {
 angular.element(document).ready(function(){
     angular.bootstrap(document, [MODULE_NAME]);
 });
+
 
 })();
