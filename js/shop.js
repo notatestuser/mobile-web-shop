@@ -3,7 +3,11 @@
 
 'use strict';
 
-angular.module('axsy.testshop.main', [])
+;(function(){
+
+var MODULE_NAME = 'lukep.testshop.main';
+
+angular.module(MODULE_NAME, [])
 
 .constant('CURRENCY_SYMBOL', '£')
 .constant('CURRENCY_FRACTION_SIZE', 0)
@@ -357,5 +361,7 @@ function($window, $document, toPx, itemDragConstants, ITEM_DRAG_TRAVEL_UNITS) {
 }]);
 
 angular.element(document).ready(function(){
-    angular.bootstrap(document, ['axsy.testshop.main']);
+    angular.bootstrap(document, [MODULE_NAME]);
 });
+
+})();
