@@ -14,7 +14,6 @@ angular.module(MODULE_NAME, [])
 .constant('CURRENCY_SYMBOL', '£')
 .constant('CURRENCY_FRACTION_SIZE', 0)
 .constant('DEFAULT_ITEMS_FETCH_LIMIT', 16)
-.constant('ITEM_DRAG_SPEED_FACTOR', 0.2)
 .constant('ITEM_DRAG_TRAVEL_UNITS', '5rem')
 .constant('ITEM_SNAPBACK_DURATION_MS', 700)  // the duration of the snapback animation (in css)
 .constant('INFINITE_SCROLL_ZONE_BOTTOM_OFFSET', 300)
@@ -109,9 +108,8 @@ function($log, $scope, CatalogueService) {
     'itemDragConstants',
     'requestAnimationFrame',
     'ITEM_DRAG_TRAVEL_UNITS',
-    'ITEM_DRAG_SPEED_FACTOR',
     'ITEM_SNAPBACK_DURATION_MS',
-function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_DRAG_SPEED_FACTOR, ITEM_SNAPBACK_DURATION_MS) {
+function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAVEL_UNITS, ITEM_SNAPBACK_DURATION_MS) {
     return {
         require: 'ngModel',
         restrict: 'AC',
@@ -204,7 +202,7 @@ function($window, $timeout, itemDragConstants, reqAnimationFrame, ITEM_DRAG_TRAV
                 if (swipeStartWindowScrollY !== $window.scrollY) {
                     return resetActivePan();  // ignore Y pans
                 }
-                var newX = position.curX + (ev.deltaX * ITEM_DRAG_SPEED_FACTOR);
+                var newX = ev.deltaX;
                 var curX = position.curX =
                         Math.min(Math.max(newX, itemDragConstants.minX), itemDragConstants.maxX);
                 var travelCompletion = (Math.abs(curX) / itemDragConstants.maxX * 100) / 100;  // either direction
