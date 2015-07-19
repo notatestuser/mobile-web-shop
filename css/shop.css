@@ -74,7 +74,7 @@ header h1 {
     padding: 1.6rem 2rem 1.6rem 7rem;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
+    cursor: move;
     border-bottom: 1px solid hsl(0, 0%, 90%);
     box-sizing: border-box;
 }
